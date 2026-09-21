@@ -11,6 +11,7 @@ public sealed class LonkBirdNPC : ModNPC
     public static bool CreativeBuildEnabled = true;
     private int buildCooldown;
     private bool residentRegistered;
+    private int socialCooldown;
 
     public override string Texture => "Terraria/Images/NPC_" + NPCID.Bird;
 
@@ -69,6 +70,23 @@ public sealed class LonkBirdNPC : ModNPC
         global::LonkBirds.Bridge.LonkBridgeClient.Observe(CreativeBuildEnabled ? "Creative building resumed." : "Creative building paused.");
     }
 
+private void SocialTick()
+    {
+        if (--socialCooldown > 0) return;
+        socialCooldown = 240;
+        string me = "lonk-" + NPC.whoAmI;
+        for (int i = 0; i < Main.maxNPCs; i++)
+        {
+            NPC other = Main.npc[i];
+            if (!other.active || other.whoAmI == NPC.whoAmI || other.type != Type) continue;
+            if (Vector2.Distance(other.Center, NPC.Center) < 180f)
+            {
+                global::LonkBirds.Bridge.LonkBridgeClient.BondResidents(me, "lonk-" + other.whoAmI);
+                global::LonkBirds.Bridge.LonkBridgeClient.Observe(me + " met " + "lonk-" + other.whoAmI + " in Terraria.");
+                break;
+            }
+        }
+    }
     private void CreativeBuild()
     {
         if (!CreativeBuildEnabled || --buildCooldown > 0) return;
@@ -108,6 +126,7 @@ public sealed class LonkBirdNPC : ModNPC
             global::LonkBirds.Bridge.LonkBridgeClient.RegisterResident("lonk-" + NPC.whoAmI);
             residentRegistered = true;
         }
+        SocialTick();
         CreativeBuild();
         NPC.TargetClosest(false);
         Player player = Main.player[NPC.target];
@@ -143,6 +162,7 @@ public sealed class LonkBirdNPC : ModNPC
         NPC.rotation = NPC.velocity.X * 0.025f;
     }
 }
+
 
 
 

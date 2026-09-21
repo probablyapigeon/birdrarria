@@ -55,6 +55,10 @@ public static void RegisterResident(string residentId)
         string safe = residentId.Replace("\\", "").Replace("\"", "");
         Enqueue("{\"version\":1,\"kind\":\"colony\",\"bird\":\"lonk\",\"world\":\"terraria\",\"payload\":{\"action\":\"register\",\"resident_id\":\"" + safe + "\",\"role\":\"builder\",\"faction\":\"wanderers\"}}");
     }
+public static void BondResidents(string first, string second)
+    {
+        Enqueue("{\"version\":1,\"kind\":\"colony\",\"bird\":\"lonk\",\"world\":\"terraria\",\"payload\":{\"action\":\"bond\",\"resident_id\":\"" + first + "\",\"other\":\"" + second + "\",\"amount\":1}}");
+    }
     public static void Observe(string text)
     {
         if (string.IsNullOrWhiteSpace(text)) return;
@@ -106,6 +110,7 @@ public static void RegisterResident(string residentId)
         catch (ObjectDisposedException) { }
     }
 }
+
 
 
 

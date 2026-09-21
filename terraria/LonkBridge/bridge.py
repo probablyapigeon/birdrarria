@@ -23,7 +23,7 @@ class BridgeState:
             action=payload.get("action","status")
             with self.lock:
                 if action=="register": result=self.colony.register(payload.get("resident_id", bird),world,payload.get("role","scout"),payload.get("faction","wanderers"))
-                elif action=="bond": self.colony.bond(bird,payload["other"],int(payload.get("amount",1))); result={"bonded":[bird,payload["other"]]}
+                elif action=="bond": self.colony.bond(payload.get("resident_id", bird),payload["other"],int(payload.get("amount",1))); result={"bonded":[payload.get("resident_id", bird),payload["other"]]}
                 elif action=="job": result=self.colony.add_job(payload["title"],payload["target"],bird)
                 elif action=="myth": result=self.colony.add_myth(payload["title"],payload["telling"],bird)
                 elif action=="family": result=self.colony.create_family(payload["name"],payload.get("members",[bird]),payload.get("parents",[]))
@@ -66,4 +66,5 @@ def main():
     except KeyboardInterrupt: pass
     finally: server.server_close()
 if __name__=="__main__": main()
+
 
