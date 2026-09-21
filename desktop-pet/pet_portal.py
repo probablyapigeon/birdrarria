@@ -36,5 +36,8 @@ class PortalClient:
         return self.request(kind="observe", bird=bird, world="desktop", payload={"text": text})
 
     def project_progress(self, bird: str, note: str) -> dict[str, Any] | None:
-        return self.request(kind="project", bird=bird, world="desktop", payload={"action": "progress", "note": note})    def approve_build(self, request_id: str) -> dict[str, Any] | None:
+        return self.request(kind="project", bird=bird, world="desktop", payload={"action": "progress", "note": note})
+
+    def approve_build(self, request_id: str) -> dict[str, Any] | None:
         return self.request(kind="build_request", bird="lonk", world="desktop", payload={"action": "approve", "request_id": request_id, "target": "nest", "bounds": {"x": 0, "y": 0, "width": 1, "height": 1}})
+
