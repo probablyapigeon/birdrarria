@@ -23,7 +23,15 @@ class BridgeState:
             action=payload.get("action","status")
             with self.lock:
                 if action=="register": result=self.colony.register(payload.get("resident_id", bird),world,payload.get("role","scout"),payload.get("faction","wanderers"))
-                elif action=="bond": self.colony.bond(payload.get("resident_id", bird),payload["other"],int(payload.get("amount",1))); result={"bonded":[payload.get("resident_id", bird),payload["other"]]}
+elif action == "bond":
+                    first = payload.get("resident_id", bird)
+                    second = payload["other"]
+                    self.colony.bond(first, second, int(payload.get("amount", 1)))
+                    family = next((item for item in self.colony.families if first in item["members"] and second in item["members"]), None)
+                    if family is None:
+                        family = self.colony.create_family("Nest of " + first + " and " + second, [first, second], [first])
+                        self.colony.add_job("build a shared nest", family["name"], first)
+                    result = {"bonded": [first, second], "family": family}
                 elif action=="job": result=self.colony.add_job(payload["title"],payload["target"],bird)
                 elif action=="myth": result=self.colony.add_myth(payload["title"],payload["telling"],bird)
                 elif action=="family": result=self.colony.create_family(payload["name"],payload.get("members",[bird]),payload.get("parents",[]))
@@ -66,5 +74,6 @@ def main():
     except KeyboardInterrupt: pass
     finally: server.server_close()
 if __name__=="__main__": main()
+
 
 
