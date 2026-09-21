@@ -9,7 +9,7 @@ MAX_MESSAGE_BYTES = 16_384
 MAX_TEXT = 240
 BIRDS = frozenset({"lonk", "pip"})
 WORLDS = frozenset({"desktop", "terraria"})
-KINDS = frozenset({"hello", "observe", "visit", "teach", "project", "build_request"})
+KINDS = frozenset({"hello", "observe", "visit", "teach", "project", "build_request", "colony"})
 BUILD_ACTIONS = frozenset({"propose", "approve", "reject"})
 
 
@@ -88,3 +88,4 @@ def decode(line: bytes | str) -> dict[str, Any]:
     if len(line) > MAX_MESSAGE_BYTES:
         raise ValueError("message exceeds maximum size")
     return validate_message(json.loads(line))
+

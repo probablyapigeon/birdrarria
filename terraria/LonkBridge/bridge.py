@@ -10,6 +10,7 @@ from collections import deque
 from typing import Any
 
 from protocol import BIRDS, MAX_TEXT, PROTOCOL_VERSION, decode
+from colony import Colony
 
 
 class BridgeState:
@@ -18,10 +19,11 @@ class BridgeState:
         self.memories = {bird: deque(maxlen=32) for bird in BIRDS}
         self.project = {"name": "Terraria nest", "goal": "build a shared birdhouse", "progress": [], "updated_by": None}
         self.builds = deque(maxlen=16)
+        self.colony = Colony()
 
     def snapshot(self) -> dict[str, Any]:
         with self.lock:
-            return {"memories": {k: list(v) for k, v in self.memories.items()}, "project": dict(self.project), "build_requests": list(self.builds)}
+            return {"memories": {k: list(v) for k, v in self.memories.items()}, "project": dict(self.project), "build_requests": list(self.builds), "colony": self.colony.snapshot()}
 
     def handle(self, message: dict[str, Any]) -> dict[str, Any]:
         kind = message["kind"]
@@ -52,6 +54,23 @@ class BridgeState:
                         self.project["progress"] = self.project["progress"][-32:]
                 self.project["updated_by"] = bird
             return {"ok": True, "project": self.snapshot()["project"]}
+        if kind == "colony":
+            action = payload.get("action", "status")
+            with self.lock:
+                if action == "register":
+                    result = self.colony.register(bird, world, payload.get("role", "scout"), payload.get("faction", "wanderers"))
+                elif action == "bond":
+                    self.colony.bond(bird, payload["other"], int(payload.get("amount", 1)))
+                    result = {"bonded": [bird, payload["other"]]}
+                elif action == "job":
+                    result = self.colony.add_job(payload["title"], payload["target"], bird)
+                elif action == "myth":
+                    result = self.colony.add_myth(payload["title"], payload["telling"], bird)
+                elif action == "settlement":
+                    result = self.colony.add_settlement(payload["name"], world or "desktop", int(payload["x"]), int(payload["y"]))
+                else:
+                    result = self.colony.snapshot()
+            return {"ok": True, "action": action, "result": result, "colony": self.colony.snapshot()}
         if kind == "build_request":
             action = payload["action"]
             with self.lock:
@@ -110,5 +129,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
 
 
