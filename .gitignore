@@ -1,0 +1,8 @@
+﻿# Local runtime state and build output
+__pycache__/
+*.pyc
+bin/
+obj/
+*.tmod
+*.dll
+*.pdb

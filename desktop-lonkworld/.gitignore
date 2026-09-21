@@ -1,0 +1,12 @@
+.build-env/
+.venv/
+__pycache__/
+*.py[cod]
+*.log
+release-assets/
+build/
+dist/
+test-reports/
+*-receipt.json
+world.json
+*.update

@@ -1,0 +1,1 @@
+Summon Lonk, the tiny XC desktop bird, inside Terraria. This first prototype follows the player, can be chatted with, persists in the world, and uses the vanilla bird texture while the companion bridge is developed.

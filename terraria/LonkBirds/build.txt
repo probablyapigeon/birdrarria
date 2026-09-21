@@ -1,0 +1,4 @@
+﻿author = Xembra
+version = 0.1
+displayName = Lonk Birds
+Recompile = true

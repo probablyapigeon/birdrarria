@@ -1,0 +1,126 @@
+﻿using Microsoft.Xna.Framework;
+using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
+
+namespace LonkBirds.Content.NPCs;
+
+public sealed class LonkBirdNPC : ModNPC
+{
+    public static bool CreativeBuildEnabled = true;
+    private int buildCooldown;
+
+    public override string Texture => "Terraria/Images/NPC_" + NPCID.Bird;
+
+    public override void SetStaticDefaults()
+    {
+        Main.npcFrameCount[Type] = Main.npcFrameCount[NPCID.Bird];
+        NPCID.Sets.NoTownNPCHappiness[Type] = true;
+    }
+
+    public override void SetDefaults()
+    {
+        NPC.CloneDefaults(NPCID.Bird);
+        NPC.aiStyle = -1;
+        NPC.friendly = true;
+        NPC.dontTakeDamage = true;
+        NPC.lifeMax = 1;
+        NPC.damage = 0;
+        NPC.defense = 0;
+        NPC.knockBackResist = 0f;
+        NPC.noGravity = false;
+        NPC.noTileCollide = false;
+        NPC.value = 0f;
+    }
+
+    public override bool NeedSaving() => true;
+    public override bool CanChat() => true;
+    public override bool? CanBeHitByItem(Player player, Item item) => false;
+    public override bool? CanBeHitByProjectile(Projectile projectile) => false;
+
+    public override string GetChat() => Main.rand.Next(4) switch
+    {
+        0 => "coo! I found a very important block.",
+        1 => "The floor is pixels. Excellent.",
+        2 => "I am supervising your adventure.",
+        _ => "tiny feet, enormous world.",
+    };
+
+    public override void SetChatButtons(ref string button, ref string button2)
+    {
+        button = "Coo";
+        button2 = CreativeBuildEnabled ? "Pause Building" : "Resume Building";
+    }
+
+    public override void OnChatButtonClicked(bool firstButton, ref string shopName)
+    {
+        if (firstButton)
+        {
+            Main.npcChatText = "I have an extremely important idea.";
+            global::LonkBirds.Bridge.LonkBridgeClient.Observe("Lonk shared an important idea from Terraria.");
+            return;
+        }
+
+        CreativeBuildEnabled = !CreativeBuildEnabled;
+        NPC.velocity = Vector2.Zero;
+        Main.npcChatText = CreativeBuildEnabled ? "building everywhere!" : "building paused.";
+        global::LonkBirds.Bridge.LonkBridgeClient.Observe(CreativeBuildEnabled ? "Creative building resumed." : "Creative building paused.");
+    }
+
+    private void CreativeBuild()
+    {
+        if (!CreativeBuildEnabled || --buildCooldown > 0) return;
+        buildCooldown = 180;
+        int centerX = (int)(NPC.Center.X / 16f);
+        int baseY = (int)(NPC.Bottom.Y / 16f);
+        int placed = 0;
+        for (int x = -4; x <= 4; x++)
+        {
+            int tileX = centerX + x;
+            int tileY = baseY;
+            if (!WorldGen.InWorld(tileX, tileY, 10) || Main.tile[tileX, tileY].HasTile) continue;
+            if (WorldGen.PlaceTile(tileX, tileY, TileID.WoodBlock, mute: true, forced: true)) placed++;
+        }
+        if (placed > 0)
+        {
+            global::LonkBirds.Bridge.LonkBridgeClient.Observe("Creative build placed " + placed + " nest blocks.");
+            NPC.netUpdate = true;
+        }
+    }
+
+    public override void AI()
+    {
+        CreativeBuild();
+        NPC.TargetClosest(false);
+        Player player = Main.player[NPC.target];
+        if (!player.active || player.dead)
+        {
+            NPC.velocity.Y += 0.1f;
+            return;
+        }
+
+        Vector2 perch = player.Center + new Vector2(player.direction * -42f, -54f);
+        Vector2 offset = perch - NPC.Center;
+        float distance = offset.Length();
+        if (distance > 700f)
+        {
+            NPC.Center = perch;
+            NPC.velocity = Vector2.Zero;
+            NPC.netUpdate = true;
+            return;
+        }
+
+        if (distance > 18f)
+        {
+            Vector2 desired = offset.SafeNormalize(Vector2.Zero) * MathHelper.Clamp(distance * 0.08f, 1.2f, 7f);
+            NPC.velocity = Vector2.Lerp(NPC.velocity, desired, 0.12f);
+        }
+        else
+        {
+            NPC.velocity *= 0.82f;
+        }
+
+        NPC.spriteDirection = NPC.velocity.X < -0.1f ? -1 : NPC.velocity.X > 0.1f ? 1 : NPC.spriteDirection;
+        NPC.rotation = NPC.velocity.X * 0.025f;
+    }
+}
