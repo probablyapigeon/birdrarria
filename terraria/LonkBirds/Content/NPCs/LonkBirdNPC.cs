@@ -10,6 +10,7 @@ public sealed class LonkBirdNPC : ModNPC
 {
     public static bool CreativeBuildEnabled = true;
     private int buildCooldown;
+    private bool residentRegistered;
 
     public override string Texture => "Terraria/Images/NPC_" + NPCID.Bird;
 
@@ -102,6 +103,11 @@ public sealed class LonkBirdNPC : ModNPC
 
     public override void AI()
     {
+        if (!residentRegistered)
+        {
+            global::LonkBirds.Bridge.LonkBridgeClient.RegisterResident("lonk-" + NPC.whoAmI);
+            residentRegistered = true;
+        }
         CreativeBuild();
         NPC.TargetClosest(false);
         Player player = Main.player[NPC.target];
@@ -137,6 +143,8 @@ public sealed class LonkBirdNPC : ModNPC
         NPC.rotation = NPC.velocity.X * 0.025f;
     }
 }
+
+
 
 
 

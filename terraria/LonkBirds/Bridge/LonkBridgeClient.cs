@@ -50,6 +50,11 @@ public static void ProposeNest(int x, int y)
         if (string.IsNullOrEmpty(lastBuildRequestId)) return;
         Enqueue("{\"version\":1,\"kind\":\"build_request\",\"bird\":\"lonk\",\"world\":\"terraria\",\"payload\":{\"action\":\"approve\",\"request_id\":\"" + lastBuildRequestId + "\",\"target\":\"nest\",\"bounds\":{\"x\":0,\"y\":0,\"width\":1,\"height\":1}}}");
     }
+public static void RegisterResident(string residentId)
+    {
+        string safe = residentId.Replace("\\", "").Replace("\"", "");
+        Enqueue("{\"version\":1,\"kind\":\"colony\",\"bird\":\"lonk\",\"world\":\"terraria\",\"payload\":{\"action\":\"register\",\"resident_id\":\"" + safe + "\",\"role\":\"builder\",\"faction\":\"wanderers\"}}");
+    }
     public static void Observe(string text)
     {
         if (string.IsNullOrWhiteSpace(text)) return;
@@ -101,6 +106,7 @@ public static void ProposeNest(int x, int y)
         catch (ObjectDisposedException) { }
     }
 }
+
 
 
 
