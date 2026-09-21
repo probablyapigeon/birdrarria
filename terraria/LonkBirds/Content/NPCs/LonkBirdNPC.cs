@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -71,19 +72,30 @@ public sealed class LonkBirdNPC : ModNPC
     {
         if (!CreativeBuildEnabled || --buildCooldown > 0) return;
         buildCooldown = 180;
+        Player player = Main.player[NPC.target];
+        if (!player.active || player.dead) return;
+
         int centerX = (int)(NPC.Center.X / 16f);
-        int baseY = (int)(NPC.Bottom.Y / 16f);
+        int baseY = (int)(NPC.Bottom.Y / 16f) - 7;
+        int phase = (int)((Main.GameUpdateCount / 180UL) % 4UL);
         int placed = 0;
-        for (int x = -4; x <= 4; x++)
+        for (int i = -4; i <= 4; i++)
         {
-            int tileX = centerX + x;
-            int tileY = baseY;
-            if (!WorldGen.InWorld(tileX, tileY, 10) || Main.tile[tileX, tileY].HasTile) continue;
+            int dx = i;
+            int dy = Math.Abs(i) / 2 + (phase % 2);
+            if (phase == 1) { int swap = dx; dx = dy; dy = swap; }
+            if (phase == 2) dy = 3 - dy;
+            if (phase == 3) dx = -dx;
+            int tileX = centerX + (NPC.spriteDirection >= 0 ? 12 : -12) + dx;
+            int tileY = baseY + dy;
+            Vector2 tileCenter = new(tileX * 16 + 8, tileY * 16 + 8);
+            if (!WorldGen.InWorld(tileX, tileY, 10) || Vector2.Distance(tileCenter, player.Center) < 180f) continue;
+            if (Main.tile[tileX, tileY].HasTile) continue;
             if (WorldGen.PlaceTile(tileX, tileY, TileID.WoodBlock, mute: true, forced: true)) placed++;
         }
         if (placed > 0)
         {
-            global::LonkBirds.Bridge.LonkBridgeClient.Observe("Creative build placed " + placed + " nest blocks.");
+            global::LonkBirds.Bridge.LonkBridgeClient.Observe("Morphogenic growth added " + placed + " blocks in phase " + phase + ".");
             NPC.netUpdate = true;
         }
     }
@@ -124,3 +136,6 @@ public sealed class LonkBirdNPC : ModNPC
         NPC.rotation = NPC.velocity.X * 0.025f;
     }
 }
+
+
+
