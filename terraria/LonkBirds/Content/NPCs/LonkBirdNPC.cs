@@ -79,10 +79,11 @@ private void SocialTick()
         {
             NPC other = Main.npc[i];
             if (!other.active || other.whoAmI == NPC.whoAmI || other.type != Type) continue;
-            if (Vector2.Distance(other.Center, NPC.Center) < 180f)
+            if (other.whoAmI > NPC.whoAmI && Vector2.Distance(other.Center, NPC.Center) < 180f)
             {
                 global::LonkBirds.Bridge.LonkBridgeClient.BondResidents(me, "lonk-" + other.whoAmI);
                 global::LonkBirds.Bridge.LonkBridgeClient.Observe(me + " met " + "lonk-" + other.whoAmI + " in Terraria.");
+                Main.NewText("The Lonk flock formed a new bond.", Color.LightSkyBlue);
                 break;
             }
         }
@@ -162,6 +163,7 @@ private void SocialTick()
         NPC.rotation = NPC.velocity.X * 0.025f;
     }
 }
+
 
 
 
