@@ -111,7 +111,8 @@ public sealed class LonkBirdNPC : ModNPC
             return;
         }
 
-        Vector2 perch = player.Center + new Vector2(player.direction * -42f, -54f);
+        int flockSlot = NPC.whoAmI % 7 - 3;
+        Vector2 perch = player.Center + new Vector2(player.direction * (-42f + flockSlot * 28f), -54f - Math.Abs(flockSlot) * 14f);
         Vector2 offset = perch - NPC.Center;
         float distance = offset.Length();
         if (distance > 700f)
@@ -136,6 +137,7 @@ public sealed class LonkBirdNPC : ModNPC
         NPC.rotation = NPC.velocity.X * 0.025f;
     }
 }
+
 
 
 
