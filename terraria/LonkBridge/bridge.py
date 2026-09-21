@@ -78,8 +78,11 @@ class Handler(socketserver.StreamRequestHandler):
                 print(f"portal: {message['kind']} from {message.get('bird', 'adapter')} ({message.get('world', '?')})", flush=True)
             except (ValueError, json.JSONDecodeError) as exc:
                 response = {"ok": False, "error": str(exc)}
-            self.wfile.write((json.dumps(response, ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8"))
-            self.wfile.flush()
+            try:
+                self.wfile.write((json.dumps(response, ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8"))
+                self.wfile.flush()
+            except (ConnectionResetError, BrokenPipeError):
+                pass
 
 
 class BridgeServer(socketserver.ThreadingTCPServer):
@@ -107,4 +110,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
